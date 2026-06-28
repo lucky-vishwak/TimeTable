@@ -69,7 +69,6 @@ const SettingsSchema = new Schema(
         },
       ],
     },
-    smsEnabled: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

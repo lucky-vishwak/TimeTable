@@ -3,7 +3,6 @@ import { dbConnect } from "@/lib/db";
 import { Task } from "@/lib/models/Task";
 import { Settings, DEFAULT_SETTINGS_KEY } from "@/lib/models/Settings";
 import { serialize } from "@/lib/serialize";
-import { sendSms } from "@/lib/sms";
 import { toDayKey, nowHHmm, minutesOf } from "@/lib/date";
 
 export const dynamic = "force-dynamic";
@@ -14,21 +13,20 @@ interface DueItem {
   message: string;
 }
 
-// Evaluate what notifications are due "now" (within a window) and optionally
-// send them. Designed to be called every minute by scripts/notify.mjs (cron).
+// Evaluate which reminders / upcoming tasks are due "now" and return them.
+// scripts/notify.mjs (run by cron on the Mac) calls this and displays a native
+// macOS notification for each due item.
 //
 // Query/body params:
 //   window  : minutes tolerance around the scheduled time (default 1)
 //   lead    : minutes before a task's start to remind (default 10)
-//   force   : "true" to ignore time and preview all of today's reminders
-//   dry     : "true" to never actually send (preview only)
+//   force   : "true" to ignore time and return all of today's reminders/tasks
 async function handle(req: NextRequest) {
   await dbConnect();
   const { searchParams } = new URL(req.url);
   const window = Number(searchParams.get("window") ?? 1);
   const lead = Number(searchParams.get("lead") ?? 10);
   const force = searchParams.get("force") === "true";
-  const dry = searchParams.get("dry") === "true";
 
   const now = new Date();
   const today = toDayKey(now);
@@ -77,30 +75,11 @@ async function handle(req: NextRequest) {
     }
   }
 
-  // Send
-  const results = [];
-  const reallySend = settings.smsEnabled && !dry;
-  for (const item of due) {
-    if (reallySend) {
-      const r = await sendSms(item.message);
-      results.push({ ...item, sent: r.sent, detail: r.detail });
-    } else {
-      results.push({
-        ...item,
-        sent: false,
-        detail: dry
-          ? "[dry] not sent"
-          : "[smsEnabled=false] not sent",
-      });
-    }
-  }
-
   return NextResponse.json({
     now: nowHHmm(now),
     today,
-    smsEnabled: !!settings.smsEnabled,
     dueCount: due.length,
-    results: serialize(results),
+    results: serialize(due),
   });
 }
 

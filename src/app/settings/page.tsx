@@ -78,9 +78,7 @@ export default function SettingsPage() {
       const res = await fetch("/api/notify?force=true", { method: "POST" });
       const data = await res.json();
       setTestResult(
-        `${data.dueCount} reminder(s) evaluated. SMS ${
-          data.smsEnabled ? "enabled" : "disabled (dry-run)"
-        }. Check the notify script / server logs.`
+        `${data.dueCount} reminder(s)/task(s) are due. Run "node scripts/notify.mjs --force" to pop them as macOS notifications.`
       );
     } catch (e) {
       setTestResult(`Failed: ${(e as Error).message}`);
@@ -232,32 +230,12 @@ export default function SettingsPage() {
 
       {/* Reminders */}
       <section className="card mt-4 p-5">
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <h2 className="text-sm font-semibold text-slate-200">
-              Reminders & SMS
-            </h2>
-            <p className="mt-0.5 text-xs text-slate-500">
-              These fire via your Android SMS gateway when the notify script
-              runs (cron).
-            </p>
-          </div>
-          <label className="flex cursor-pointer items-center gap-2 text-xs">
-            <span className="text-slate-400">Send real SMS</span>
-            <button
-              type="button"
-              onClick={() => set({ smsEnabled: !s.smsEnabled })}
-              className={`relative h-6 w-11 rounded-full transition ${
-                s.smsEnabled ? "bg-brand" : "bg-ink-line"
-              }`}
-            >
-              <span
-                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition ${
-                  s.smsEnabled ? "left-[22px]" : "left-0.5"
-                }`}
-              />
-            </button>
-          </label>
+        <div className="mb-4">
+          <h2 className="text-sm font-semibold text-slate-200">Reminders</h2>
+          <p className="mt-0.5 text-xs text-slate-500">
+            These pop as native macOS notifications when the notify script runs
+            (cron). Task reminders also fire shortly before each task starts.
+          </p>
         </div>
 
         <div className="space-y-3">
@@ -307,7 +285,7 @@ export default function SettingsPage() {
               <input
                 className="input mt-2"
                 value={r.message}
-                placeholder="SMS message text"
+                placeholder="Notification message text"
                 onChange={(e) => updateReminder(i, { message: e.target.value })}
               />
               <div className="mt-2">
@@ -352,7 +330,8 @@ export default function SettingsPage() {
         )}
         <p className="mt-3 text-xs text-slate-500">
           Tip: remember to click <b>Save changes</b> after editing reminders.
-          Configure your gateway URL & numbers in <code>.env.local</code>.
+          Schedule <code>scripts/notify.mjs</code> via cron to get them
+          automatically (see README).
         </p>
       </section>
     </>

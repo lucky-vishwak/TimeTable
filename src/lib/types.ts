@@ -67,5 +67,4 @@ export interface SettingsDTO {
   dailyCodingTasksGoal: number;
   mealSchedule: { meal: MealType; time: string }[];
   reminders: ReminderDTO[];
-  smsEnabled: boolean;
 }

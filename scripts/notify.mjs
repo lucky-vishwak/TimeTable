@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 // ----------------------------------------------------------------------------
 // notify.mjs — run by cron every minute. Calls the app's /api/notify endpoint,
-// which figures out which reminders/tasks are due "now" and sends SMS via your
-// Android SMS gateway (when SMS_ENABLED=true and settings.smsEnabled is on).
+// which figures out which reminders/tasks are due "now", then pops a native
+// macOS notification for each one (via osascript).
 //
 // Usage:
 //   node scripts/notify.mjs           # normal run (window = 1 min)
-//   node scripts/notify.mjs --force   # preview today's reminders regardless of time
-//   node scripts/notify.mjs --dry     # never send, just print
+//   node scripts/notify.mjs --force   # show today's reminders regardless of time
+//   node scripts/notify.mjs --dry     # never notify, just print
 //
 // Cron (every minute):
 //   * * * * * cd /path/to/TimeTable && /usr/bin/node scripts/notify.mjs >> /tmp/timetable-notify.log 2>&1
@@ -16,6 +16,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { spawn } from "node:child_process";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -47,6 +48,19 @@ const args = process.argv.slice(2);
 const force = args.includes("--force");
 const dry = args.includes("--dry");
 
+function macNotify(title, message) {
+  // Escape double quotes for AppleScript string literals.
+  const esc = (s) => String(s).replace(/"/g, '\\"');
+  const script = `display notification "${esc(message)}" with title "TimeTable" subtitle "${esc(
+    title
+  )}" sound name "Glass"`;
+  return new Promise((resolve) => {
+    const p = spawn("osascript", ["-e", script]);
+    p.on("close", () => resolve());
+    p.on("error", () => resolve());
+  });
+}
+
 const params = new URLSearchParams();
 if (force) params.set("force", "true");
 if (dry) params.set("dry", "true");
@@ -57,13 +71,13 @@ try {
   const res = await fetch(url, { method: "POST" });
   const data = await res.json();
   const ts = new Date().toISOString();
-  console.log(
-    `[${ts}] due=${data.dueCount} smsEnabled=${data.smsEnabled} now=${data.now}`
-  );
+  console.log(`[${ts}] due=${data.dueCount} now=${data.now}`);
   for (const r of data.results || []) {
-    console.log(
-      `  - (${r.kind}) ${r.label} :: sent=${r.sent} :: ${r.detail}`
-    );
+    console.log(`  - (${r.kind}) ${r.label} :: ${r.message}`);
+    // Fire a native macOS notification for each due item (unless dry-run).
+    if (!dry) {
+      await macNotify(r.label, r.message || r.label);
+    }
   }
   if ((data.results || []).length === 0) {
     console.log("  (nothing due)");

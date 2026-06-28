@@ -65,7 +65,7 @@ export default function Sidebar() {
       <div className="mt-4 rounded-xl border border-ink-line bg-ink-card/60 p-3 text-xs text-slate-400">
         <p className="font-medium text-slate-300">Stay on track</p>
         <p className="mt-1 leading-relaxed">
-          SMS reminders fire from your phone gateway based on your schedule.
+          macOS reminders fire from the notify script based on your schedule.
         </p>
       </div>
     </aside>

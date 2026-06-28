@@ -81,7 +81,6 @@ if (!existing) {
       { enabled: true, label: "Coding time", time: "20:00", message: "Time for your daily coding goal 💻", days: [0, 1, 2, 3, 4, 5, 6] },
       { enabled: true, label: "Day review", time: "22:30", message: "Review your day & mark tasks done/missed.", days: [0, 1, 2, 3, 4, 5, 6] },
     ],
-    smsEnabled: false,
     createdAt: new Date(),
     updatedAt: new Date(),
   });
