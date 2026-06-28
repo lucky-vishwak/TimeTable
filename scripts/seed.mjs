@@ -51,11 +51,13 @@ const db = mongoose.connection.db;
 const Tasks = db.collection("tasks");
 const Food = db.collection("foodlogs");
 const Settings = db.collection("settings");
+const LifeLogs = db.collection("lifelogs");
 
 if (process.argv.includes("--reset")) {
   await Tasks.deleteMany({});
   await Food.deleteMany({});
-  console.log("Cleared tasks and food.");
+  await LifeLogs.deleteMany({});
+  console.log("Cleared tasks, food and life logs.");
 }
 
 // Ensure settings exist
@@ -69,8 +71,8 @@ if (!existing) {
     officeDays: [1, 2, 3, 4, 5],
     sleepStart: "23:30",
     wakeTime: "07:00",
-    dailyCodingMinutesGoal: 90,
-    dailyCodingTasksGoal: 2,
+    dailyFocusMinutesGoal: 90,
+    dailyFocusTasksGoal: 2,
     mealSchedule: [
       { meal: "breakfast", time: "08:30" },
       { meal: "lunch", time: "13:00" },
@@ -78,7 +80,7 @@ if (!existing) {
     ],
     reminders: [
       { enabled: true, label: "Plan your day", time: "08:00", message: "Good morning! Plan your tasks for today.", days: [1, 2, 3, 4, 5] },
-      { enabled: true, label: "Coding time", time: "20:00", message: "Time for your daily coding goal 💻", days: [0, 1, 2, 3, 4, 5, 6] },
+      { enabled: true, label: "Focus time", time: "20:00", message: "Time for your daily focus tasks 🚀", days: [0, 1, 2, 3, 4, 5, 6] },
       { enabled: true, label: "Day review", time: "22:30", message: "Review your day & mark tasks done/missed.", days: [0, 1, 2, 3, 4, 5, 6] },
     ],
     createdAt: new Date(),
@@ -87,13 +89,14 @@ if (!existing) {
   console.log("Created default settings.");
 }
 
-const codingTitles = [
+const focusTitles = [
   "LeetCode: 2 problems",
   "Build feature branch",
-  "Refactor API layer",
-  "Write unit tests",
-  "Read system design article",
+  "Learn: Rust basics",
   "Side project: auth flow",
+  "Read system design article",
+  "Course: 1 module",
+  "Write blog post draft",
 ];
 const officeTitles = [
   "Standup meeting",
@@ -116,8 +119,20 @@ const foods = {
   snack: [["Apple", true], ["Almonds", true], ["Chips", false], ["Samosa", false]],
 };
 
+const lifeEvents = [
+  ["movie", "Watched Dune: Part Two", "PVR Cinemas", ["friends"], "21:30"],
+  ["party", "Dinner party at Arjun's", "Arjun's place", ["college gang"], "20:00"],
+  ["outing", "Coffee & long walk", "Marina Beach", ["Sneha"], "17:30"],
+  ["travel", "Weekend trip to Pondicherry", "Pondicherry", ["family"], "07:00"],
+  ["event", "Tech meetup: React India", "Convention Center", [], "10:00"],
+  ["health", "Doctor checkup", "Apollo Clinic", [], "11:00"],
+  ["shopping", "Bought running shoes", "Phoenix Mall", [], "16:00"],
+  ["movie", "Binge: new series finale", "Home", [], "22:00"],
+];
+
 const tasksToInsert = [];
 const foodToInsert = [];
+const lifeToInsert = [];
 const today = new Date();
 
 for (let i = 13; i >= 0; i--) {
@@ -152,14 +167,14 @@ for (let i = 13; i >= 0; i--) {
     }
   }
 
-  // Coding tasks
-  const codingN = 1 + Math.floor(Math.random() * 2);
-  for (let k = 0; k < codingN; k++) {
+  // Focus tasks (productive / growth work)
+  const focusN = 1 + Math.floor(Math.random() * 2);
+  for (let k = 0; k < focusN; k++) {
     const done = slackDay ? chance(0.4) : chance(0.8);
     tasksToInsert.push({
-      title: pick(codingTitles),
+      title: pick(focusTitles),
       notes: "",
-      category: "coding",
+      category: "focus",
       date: key,
       startTime: "20:00",
       endTime: "21:00",
@@ -213,13 +228,32 @@ for (let i = 13; i >= 0; i--) {
       updatedAt: d,
     });
   }
+
+  // Life events / memories — a few per fortnight (mostly evenings/weekends)
+  const wantEvent = !isWorkday ? chance(0.85) : chance(0.4);
+  if (wantEvent) {
+    const [type, title, location, people, time] = pick(lifeEvents);
+    lifeToInsert.push({
+      date: key,
+      time,
+      type,
+      title,
+      notes: "",
+      people,
+      location,
+      rating: pick([0, 3, 4, 4, 5]),
+      createdAt: d,
+      updatedAt: d,
+    });
+  }
 }
 
 if (tasksToInsert.length) await Tasks.insertMany(tasksToInsert);
 if (foodToInsert.length) await Food.insertMany(foodToInsert);
+if (lifeToInsert.length) await LifeLogs.insertMany(lifeToInsert);
 
 console.log(
-  `Seeded ${tasksToInsert.length} tasks and ${foodToInsert.length} food logs over 14 days.`
+  `Seeded ${tasksToInsert.length} tasks, ${foodToInsert.length} food logs and ${lifeToInsert.length} life events over 14 days.`
 );
 await mongoose.disconnect();
 process.exit(0);

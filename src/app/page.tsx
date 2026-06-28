@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   CheckCircle2,
-  Code2,
+  Rocket,
   Utensils,
   Flame,
   ArrowRight,
@@ -62,11 +62,11 @@ export default function Dashboard() {
   const considered = tasks.filter((t) => t.status !== "skipped").length;
   const pct = considered ? Math.round((doneCount / considered) * 100) : 0;
 
-  const codingMinutes = tasks
-    .filter((t) => t.category === "coding" && t.status === "done")
+  const focusMinutes = tasks
+    .filter((t) => t.category === "focus" && t.status === "done")
     .reduce((s, t) => s + (t.actualMinutes || t.plannedMinutes || 0), 0);
-  const codingPct = settings.dailyCodingMinutesGoal
-    ? Math.min(100, Math.round((codingMinutes / settings.dailyCodingMinutesGoal) * 100))
+  const focusPct = settings.dailyFocusMinutesGoal
+    ? Math.min(100, Math.round((focusMinutes / settings.dailyFocusMinutesGoal) * 100))
     : 0;
 
   const healthyMeals = food.filter((f) => f.healthy).length;
@@ -106,11 +106,11 @@ export default function Dashboard() {
           icon={<CheckCircle2 className="h-4 w-4" />}
         />
         <StatCard
-          label="Coding"
-          value={`${codingMinutes}m`}
-          hint={`goal ${settings.dailyCodingMinutesGoal}m`}
+          label="Tasks (focus)"
+          value={`${focusMinutes}m`}
+          hint={`goal ${settings.dailyFocusMinutesGoal}m`}
           accent="#34d399"
-          icon={<Code2 className="h-4 w-4" />}
+          icon={<Rocket className="h-4 w-4" />}
         />
         <StatCard
           label="Meals logged"
@@ -177,11 +177,11 @@ export default function Dashboard() {
               </div>
               <div className="flex flex-col items-center gap-2">
                 <ProgressRing
-                  value={codingPct}
+                  value={focusPct}
                   color="#34d399"
-                  label={`${codingPct}%`}
+                  label={`${focusPct}%`}
                 />
-                <span className="text-xs text-slate-400">Coding</span>
+                <span className="text-xs text-slate-400">Tasks</span>
               </div>
             </div>
           </div>

@@ -130,8 +130,8 @@ export default function AnalyticsPage() {
           accent="#60a5fa"
         />
         <StatCard
-          label="Coding goal"
-          value={data.totals.codingGoalHitDays}
+          label="Focus goal"
+          value={data.totals.focusGoalHitDays}
           hint="days hit"
           accent="#fbbf24"
         />

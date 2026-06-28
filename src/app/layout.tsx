@@ -6,7 +6,7 @@ import MobileNav from "@/components/MobileNav";
 export const metadata: Metadata = {
   title: "TimeTable — your day, mastered",
   description:
-    "Personal schedule, tasks, coding goals, food tracking and analytics with smart reminders.",
+    "Personal schedule, productive tasks, food tracking, journal and analytics with smart reminders.",
 };
 
 export const viewport: Viewport = {

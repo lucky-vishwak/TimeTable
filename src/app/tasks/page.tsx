@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Code2, Flame, Target } from "lucide-react";
+import { Plus, Rocket, Flame, Target } from "lucide-react";
 import { api } from "@/lib/api";
 import { TaskDTO, SettingsDTO, TaskStatus } from "@/lib/types";
 import { toDayKey, addDays, WEEKDAYS } from "@/lib/date";
@@ -9,7 +9,9 @@ import { PageHeader, StatCard, ProgressRing, Spinner } from "@/components/ui";
 import TaskRow from "@/components/TaskRow";
 import TaskModal from "@/components/TaskModal";
 
-export default function CodingPage() {
+// "Tasks" = the focus category: any productive / growth work — building
+// projects, learning new tech, coding, deep work, etc.
+export default function TasksPage() {
   const today = toDayKey();
   const [tasks, setTasks] = useState<TaskDTO[]>([]);
   const [settings, setSettings] = useState<SettingsDTO | null>(null);
@@ -22,7 +24,7 @@ export default function CodingPage() {
   async function load() {
     setLoading(true);
     const [t, s] = await Promise.all([
-      api.getTasks({ from, to: today, category: "coding" }),
+      api.getTasks({ from, to: today, category: "focus" }),
       api.getSettings(),
     ]);
     setTasks(t);
@@ -35,15 +37,14 @@ export default function CodingPage() {
 
   if (loading || !settings) return <Spinner />;
 
-  const minutesFor = (t: TaskDTO) =>
-    t.actualMinutes || t.plannedMinutes || 0;
+  const minutesFor = (t: TaskDTO) => t.actualMinutes || t.plannedMinutes || 0;
 
   const todayTasks = tasks.filter((t) => t.date === today);
   const todayDone = todayTasks.filter((t) => t.status === "done");
   const todayMinutes = todayDone.reduce((s, t) => s + minutesFor(t), 0);
   const goalPct = Math.min(
     100,
-    Math.round((todayMinutes / settings.dailyCodingMinutesGoal) * 100)
+    Math.round((todayMinutes / settings.dailyFocusMinutesGoal) * 100)
   );
 
   // Build last 14 days minutes + streak
@@ -56,7 +57,7 @@ export default function CodingPage() {
     last14.push({
       date: d,
       minutes,
-      hit: minutes >= settings.dailyCodingMinutesGoal,
+      hit: minutes >= settings.dailyFocusMinutesGoal,
     });
   }
   let streak = 0;
@@ -65,7 +66,7 @@ export default function CodingPage() {
     else break;
   }
   const maxMin = Math.max(
-    settings.dailyCodingMinutesGoal,
+    settings.dailyFocusMinutesGoal,
     ...last14.map((d) => d.minutes),
     1
   );
@@ -75,7 +76,7 @@ export default function CodingPage() {
     await api.updateTask(task._id, { status });
   }
   async function save(data: Partial<TaskDTO>) {
-    const payload = { ...data, category: "coding" as const };
+    const payload = { ...data, category: "focus" as const };
     if (editing) {
       const u = await api.updateTask(editing._id, payload);
       setTasks((p) => p.map((t) => (t._id === editing._id ? u : t)));
@@ -89,8 +90,8 @@ export default function CodingPage() {
   return (
     <>
       <PageHeader
-        title="Coding Goals 💻"
-        subtitle="Hit your daily coding target and keep the streak alive."
+        title="Tasks 🚀"
+        subtitle="Any productive work — projects, learning, coding, deep work. Hit your daily focus goal."
         action={
           <button
             className="btn-primary"
@@ -99,7 +100,7 @@ export default function CodingPage() {
               setModalOpen(true);
             }}
           >
-            <Plus className="h-4 w-4" /> Coding task
+            <Plus className="h-4 w-4" /> New task
           </button>
         }
       />
@@ -108,9 +109,9 @@ export default function CodingPage() {
         <StatCard
           label="Today"
           value={`${todayMinutes}m`}
-          hint={`of ${settings.dailyCodingMinutesGoal}m goal`}
+          hint={`of ${settings.dailyFocusMinutesGoal}m goal`}
           accent="#34d399"
-          icon={<Code2 className="h-4 w-4" />}
+          icon={<Rocket className="h-4 w-4" />}
         />
         <StatCard
           label="Streak"
@@ -122,7 +123,7 @@ export default function CodingPage() {
         <StatCard
           label="Tasks today"
           value={`${todayDone.length}/${todayTasks.length}`}
-          hint={`target ${settings.dailyCodingTasksGoal}`}
+          hint={`target ${settings.dailyFocusTasksGoal}`}
           accent="#6c5ce7"
           icon={<Target className="h-4 w-4" />}
         />
@@ -166,11 +167,11 @@ export default function CodingPage() {
 
         <div>
           <h2 className="mb-3 text-sm font-semibold text-slate-200">
-            Today&apos;s coding tasks
+            Today&apos;s tasks
           </h2>
           {todayTasks.length === 0 ? (
             <div className="card p-6 text-center text-sm text-slate-500">
-              No coding tasks yet today. Add one to start.
+              No focus tasks yet today. Add one to start.
             </div>
           ) : (
             <div className="space-y-2">
@@ -203,7 +204,7 @@ export default function CodingPage() {
         onSave={save}
         initial={editing}
         defaultDate={today}
-        defaultCategory="coding"
+        defaultCategory="focus"
       />
     </>
   );

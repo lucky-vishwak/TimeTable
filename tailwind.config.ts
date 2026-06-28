@@ -25,7 +25,7 @@ const config: Config = {
         },
         cat: {
           general: "#60a5fa",
-          coding: "#34d399",
+          focus: "#34d399",
           food: "#fbbf24",
           office: "#f472b6",
         },

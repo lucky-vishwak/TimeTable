@@ -12,8 +12,8 @@ export interface DayStat {
   completionRate: number; // 0..1 of non-skipped tasks
   plannedMinutes: number;
   actualMinutes: number;
-  codingMinutes: number;
-  codingTasksDone: number;
+  focusMinutes: number;
+  focusTasksDone: number;
   meals: number;
   healthyMeals: number;
   score: number; // 0..100 adherence score
@@ -45,8 +45,8 @@ export interface AnalyticsResult {
     offTrackDays: number;
     plannedMinutes: number;
     actualMinutes: number;
-    codingMinutes: number;
-    codingGoalHitDays: number;
+    focusMinutes: number;
+    focusGoalHitDays: number;
   };
   categorySplit: CategorySplit[];
   bestDay?: DayStat;
@@ -87,22 +87,22 @@ export function computeDayStat(
     .filter((t) => t.status === "done")
     .reduce((s, t) => s + taskMinutes(t), 0);
 
-  const codingTasks = dayTasks.filter((t) => t.category === "coding");
-  const codingDone = codingTasks.filter((t) => t.status === "done");
-  const codingMinutes = codingDone.reduce((s, t) => s + taskMinutes(t), 0);
-  const codingTasksDone = codingDone.length;
+  const focusTasks = dayTasks.filter((t) => t.category === "focus");
+  const focusDone = focusTasks.filter((t) => t.status === "done");
+  const focusMinutes = focusDone.reduce((s, t) => s + taskMinutes(t), 0);
+  const focusTasksDone = focusDone.length;
 
   const meals = dayFood.length;
   const healthyMeals = dayFood.filter((f) => f.healthy).length;
 
-  // Adherence score: weighted blend of completion, coding goal, meal health.
-  const codingGoalRatio = settings.dailyCodingMinutesGoal
-    ? Math.min(1, codingMinutes / settings.dailyCodingMinutesGoal)
+  // Adherence score: weighted blend of completion, focus goal, meal health.
+  const focusGoalRatio = settings.dailyFocusMinutesGoal
+    ? Math.min(1, focusMinutes / settings.dailyFocusMinutesGoal)
     : 0;
   const foodRatio = meals > 0 ? healthyMeals / meals : 0.5;
 
   let score = Math.round(
-    completionRate * 60 + codingGoalRatio * 25 + foodRatio * 15
+    completionRate * 60 + focusGoalRatio * 25 + foodRatio * 15
   );
   if (total === 0 && meals === 0) score = 0;
   score = Math.max(0, Math.min(100, score));
@@ -118,8 +118,8 @@ export function computeDayStat(
     completionRate,
     plannedMinutes,
     actualMinutes,
-    codingMinutes,
-    codingTasksDone,
+    focusMinutes,
+    focusTasksDone,
     meals,
     healthyMeals,
     score,
@@ -162,7 +162,7 @@ export function buildAnalytics(
   const totalDone = days.reduce((s, d) => s + d.done, 0);
 
   const categorySplit: CategorySplit[] = (
-    ["general", "coding", "food", "office"] as Category[]
+    ["general", "focus", "food", "office"] as Category[]
   ).map((cat) => {
     const ct = tasks.filter((t) => t.category === cat);
     return {
@@ -184,8 +184,8 @@ export function buildAnalytics(
   const bestDay = sorted[0];
   const worstDay = sorted[sorted.length - 1];
 
-  const codingGoalHitDays = activeDays.filter(
-    (d) => d.codingMinutes >= settings.dailyCodingMinutesGoal
+  const focusGoalHitDays = activeDays.filter(
+    (d) => d.focusMinutes >= settings.dailyFocusMinutesGoal
   ).length;
 
   const totals = {
@@ -197,8 +197,8 @@ export function buildAnalytics(
     offTrackDays,
     plannedMinutes: sum((d) => d.plannedMinutes),
     actualMinutes: sum((d) => d.actualMinutes),
-    codingMinutes: sum((d) => d.codingMinutes),
-    codingGoalHitDays,
+    focusMinutes: sum((d) => d.focusMinutes),
+    focusGoalHitDays,
   };
 
   const suggestions = buildSuggestions(
@@ -285,37 +285,37 @@ function buildSuggestions(
     });
   }
 
-  // 3. Coding goal
-  const codingHitRate = days.length ? totals.codingGoalHitDays / days.length : 0;
-  if (codingHitRate < 0.5) {
+  // 3. Focus goal
+  const focusHitRate = days.length ? totals.focusGoalHitDays / days.length : 0;
+  if (focusHitRate < 0.5) {
     out.push({
-      id: "coding",
+      id: "focus",
       severity: "warn",
-      title: "Coding goal is being missed",
-      detail: `You hit your ${settings.dailyCodingMinutesGoal}-min coding goal on only ${totals.codingGoalHitDays}/${days.length} days. Block a fixed slot (e.g. right after office) to protect it.`,
+      title: "Focus goal is being missed",
+      detail: `You hit your ${settings.dailyFocusMinutesGoal}-min focus goal on only ${totals.focusGoalHitDays}/${days.length} days. Block a fixed slot (e.g. right after office) to protect it.`,
     });
-  } else if (codingHitRate >= 0.8) {
+  } else if (focusHitRate >= 0.8) {
     out.push({
-      id: "coding-good",
+      id: "focus-good",
       severity: "good",
-      title: "Coding consistency 💪",
-      detail: `Daily coding goal hit on ${totals.codingGoalHitDays}/${days.length} days. Strong habit.`,
+      title: "Focus consistency 💪",
+      detail: `Daily focus goal hit on ${totals.focusGoalHitDays}/${days.length} days. Strong habit.`,
     });
   }
 
   // 4. Office time crowding out everything else
   const office = categorySplit.find((c) => c.category === "office");
-  const coding = categorySplit.find((c) => c.category === "coding");
-  if (office && coding && office.actualMinutes > 0) {
+  const focus = categorySplit.find((c) => c.category === "focus");
+  if (office && focus && office.actualMinutes > 0) {
     const officeH = Math.round(office.actualMinutes / 60);
-    if (coding.actualMinutes < office.actualMinutes * 0.1 && officeH > 10) {
+    if (focus.actualMinutes < office.actualMinutes * 0.1 && officeH > 10) {
       out.push({
         id: "office-heavy",
         severity: "info",
         title: "Office hours dominate your time",
         detail: `~${officeH}h logged on office work vs only ${Math.round(
-          coding.actualMinutes / 60
-        )}h coding. Consider a 25-min focused coding sprint before work.`,
+          focus.actualMinutes / 60
+        )}h focus. Consider a 25-min focused focus sprint before work.`,
       });
     }
   }

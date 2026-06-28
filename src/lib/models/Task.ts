@@ -6,7 +6,7 @@ const TaskSchema = new Schema(
     notes: { type: String, default: "" },
     category: {
       type: String,
-      enum: ["general", "coding", "food", "office"],
+      enum: ["general", "focus", "food", "office"],
       default: "general",
       index: true,
     },

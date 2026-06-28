@@ -33,8 +33,8 @@ const SettingsSchema = new Schema(
     officeDays: { type: [Number], default: [1, 2, 3, 4, 5] }, // Mon..Fri
     sleepStart: { type: String, default: "23:30" },
     wakeTime: { type: String, default: "07:00" },
-    dailyCodingMinutesGoal: { type: Number, default: 90 },
-    dailyCodingTasksGoal: { type: Number, default: 2 },
+    dailyFocusMinutesGoal: { type: Number, default: 90 },
+    dailyFocusTasksGoal: { type: Number, default: 2 },
     mealSchedule: {
       type: [MealScheduleSchema],
       default: [
@@ -55,9 +55,9 @@ const SettingsSchema = new Schema(
         },
         {
           enabled: true,
-          label: "Coding time",
+          label: "Focus time",
           time: "20:00",
-          message: "Time for your daily coding goal 💻",
+          message: "Time for your daily focus tasks 🚀",
           days: [0, 1, 2, 3, 4, 5, 6],
         },
         {

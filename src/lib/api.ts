@@ -1,5 +1,5 @@
 // Tiny client-side fetch helpers.
-import { TaskDTO, FoodLogDTO, SettingsDTO } from "./types";
+import { TaskDTO, FoodLogDTO, SettingsDTO, LifeLogDTO } from "./types";
 import { AnalyticsResult } from "./analytics";
 
 async function json<T>(res: Response): Promise<T> {
@@ -50,6 +50,31 @@ export const api = {
     }).then((r) => json<FoodLogDTO>(r)),
   deleteFood: (id: string) =>
     fetch(`/api/food/${id}`, { method: "DELETE" }).then((r) => json(r)),
+
+  // Life log / journal
+  getLifeLogs: (params: Record<string, string>) =>
+    fetch(`/api/lifelog?${new URLSearchParams(params)}`, {
+      cache: "no-store",
+    }).then((r) => json<LifeLogDTO[]>(r)),
+  createLifeLog: (
+    data: Omit<Partial<LifeLogDTO>, "people"> & { people?: string }
+  ) =>
+    fetch("/api/lifelog", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }).then((r) => json<LifeLogDTO>(r)),
+  updateLifeLog: (
+    id: string,
+    data: Omit<Partial<LifeLogDTO>, "people"> & { people?: string }
+  ) =>
+    fetch(`/api/lifelog/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }).then((r) => json<LifeLogDTO>(r)),
+  deleteLifeLog: (id: string) =>
+    fetch(`/api/lifelog/${id}`, { method: "DELETE" }).then((r) => json(r)),
 
   // Settings
   getSettings: () =>

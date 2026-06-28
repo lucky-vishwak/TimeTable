@@ -172,24 +172,24 @@ export default function SettingsPage() {
           </h2>
           <div className="space-y-4">
             <div>
-              <label className="label">Coding minutes / day</label>
+              <label className="label">Focus minutes / day</label>
               <input
                 type="number"
                 className="input"
-                value={s.dailyCodingMinutesGoal}
+                value={s.dailyFocusMinutesGoal}
                 onChange={(e) =>
-                  set({ dailyCodingMinutesGoal: Number(e.target.value) })
+                  set({ dailyFocusMinutesGoal: Number(e.target.value) })
                 }
               />
             </div>
             <div>
-              <label className="label">Coding tasks / day</label>
+              <label className="label">Focus tasks / day</label>
               <input
                 type="number"
                 className="input"
-                value={s.dailyCodingTasksGoal}
+                value={s.dailyFocusTasksGoal}
                 onChange={(e) =>
-                  set({ dailyCodingTasksGoal: Number(e.target.value) })
+                  set({ dailyFocusTasksGoal: Number(e.target.value) })
                 }
               />
             </div>

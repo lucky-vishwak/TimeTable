@@ -1,9 +1,10 @@
 # TimeTable — your day, mastered ⏱️
 
 A fully personalized productivity app for a software engineer: daily schedule, a
-real calendar, custom tasks, **coding goals**, **food management**, **office
-hours**, and **analytics** that tell you which days you're off-track and *where
-to improve* — plus **native macOS reminders** driven by your schedule.
+real calendar, custom tasks, **focus/productive goals**, **food management**, a
+**life journal**, **office hours**, and **analytics** that tell you which days
+you're off-track and *where to improve* — plus **native macOS reminders** driven
+by your schedule.
 
 Built with **Next.js (App Router) + TypeScript + Tailwind + MongoDB (Mongoose)**.
 
@@ -18,8 +19,9 @@ Built with **Next.js (App Router) + TypeScript + Tailwind + MongoDB (Mongoose)**
 | **Dashboard** | Greeting, today's stats, up-next tasks, progress rings, live insights |
 | **Day Schedule** | Per-day timeline, add/edit/complete/miss/skip tasks, day navigation |
 | **Calendar** | Month grid with per-day task dots & completion, click a day to plan |
-| **Coding** | Daily coding-minute goal, 14-day bar chart, streak counter |
+| **Tasks** | Productive/growth work (projects, learning, coding…): daily focus-minute goal, 14-day chart, streak |
 | **Food** | Log meals by type (breakfast/lunch/dinner/snack), healthy flag, calories |
+| **Journal** | End-to-end day timeline (tasks + meals + life moments) and search across all memories |
 | **Analytics** | Daily adherence score, on/off-track days, time-split, **personalized suggestions** |
 | **Settings** | Office hours & days, wake/sleep, goals, meal schedule, reminders |
 | **Reminders** | Cron-driven native macOS notifications from your schedule |
@@ -27,13 +29,13 @@ Built with **Next.js (App Router) + TypeScript + Tailwind + MongoDB (Mongoose)**
 ### How "on track" is measured
 Each active day gets a **0–100 adherence score** blending:
 - task completion (60%)
-- coding-goal progress (25%)
+- focus-goal progress (25%)
 - meal healthiness (15%)
 
 Days scoring **≥ 70 are "on track."** The analytics engine
 ([`src/lib/analytics.ts`](src/lib/analytics.ts)) then generates suggestions like
 *"Saturdays are your weak spot"*, *"You're over-planning your days"*, or
-*"Office hours dominate your time — add a 25-min coding sprint."*
+*"Office hours dominate your time — add a 25-min focus sprint."*
 
 ---
 
@@ -108,15 +110,16 @@ src/
     page.tsx              # Dashboard
     schedule/             # Day timeline
     calendar/             # Month view
-    coding/               # Coding goals + streak
+    tasks/                # Focus/productive goals + streak
     food/                 # Meal logging
+    journal/              # End-to-end day timeline + memory search
     analytics/            # Charts + suggestions
     settings/             # Config + reminders
-    api/                  # tasks, food, settings, analytics, notify
+    api/                  # tasks, food, lifelog, settings, analytics, notify
   components/             # Sidebar, modals, task rows, UI primitives
   lib/
     db.ts                 # Mongoose connection (cached)
-    models/               # Task, FoodLog, Settings schemas
+    models/               # Task, FoodLog, LifeLog, Settings schemas
     analytics.ts          # Scoring + suggestion engine
     date.ts, types.ts, api.ts
 scripts/
@@ -131,6 +134,8 @@ scripts/
 | PATCH/DELETE | `/api/tasks/:id` | update (status, fields) / delete |
 | GET/POST | `/api/food` | list / create meal logs |
 | PATCH/DELETE | `/api/food/:id` | update / delete |
+| GET/POST | `/api/lifelog` | list (by `date`/range, `type`, or `q` search) / create |
+| PATCH/DELETE | `/api/lifelog/:id` | update / delete |
 | GET/PUT | `/api/settings` | read / upsert settings |
 | GET | `/api/analytics?from=&to=` | computed stats + suggestions |
 | GET/POST | `/api/notify?force=&lead=&window=` | list reminders/tasks due now |

@@ -6,8 +6,9 @@ import {
   LayoutDashboard,
   CalendarDays,
   ListTodo,
-  Code2,
+  Rocket,
   Utensils,
+  BookHeart,
   BarChart3,
 } from "lucide-react";
 
@@ -15,8 +16,9 @@ const nav = [
   { href: "/", label: "Home", icon: LayoutDashboard },
   { href: "/schedule", label: "Day", icon: ListTodo },
   { href: "/calendar", label: "Cal", icon: CalendarDays },
-  { href: "/coding", label: "Code", icon: Code2 },
+  { href: "/tasks", label: "Tasks", icon: Rocket },
   { href: "/food", label: "Food", icon: Utensils },
+  { href: "/journal", label: "Journal", icon: BookHeart },
   { href: "/analytics", label: "Stats", icon: BarChart3 },
 ];
 

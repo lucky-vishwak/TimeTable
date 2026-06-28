@@ -137,7 +137,7 @@ export default function SchedulePage() {
             🌅 Wake {settings.wakeTime}
           </span>
           <span className="chip border border-ink-line bg-ink-card/60">
-            💻 Coding goal {settings.dailyCodingMinutesGoal}m
+            🚀 Focus goal {settings.dailyFocusMinutesGoal}m
           </span>
         </div>
       )}
